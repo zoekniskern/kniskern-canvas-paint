@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Kniskern Canvas Paint</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Abel');
+        body {
+            background: #eeeeee;
+            font-family: 'Abel', sans-serif;
+        }
+        
+        #mainCanvas {
+            background: #ffffff;
+            position: absolute;
+            z-index: 0;
+            left: 10px;
+            top: 10px;
+            box-shadow: 4px 4px 8px rgb(0,0,0,0.5);
+        }
+        
+        #controls {
+            position: absolute;
+            z-index: 2;
+            left: 25px;
+            top: 25px;
+        }
+        
+        label{
+            font-size: 15px;
+            margin-right: 0.75em;
+        }
+    </style>
+    
+    <script>
+        "use strict";
+        window.onload = init;
+        
+        //Global Variables
+        var canvas;
+        var ctx;
+        var dragging = false;
+        var lineWdith;
+        var strokeStyle;
+        
+        //Constant Variables
+        
+        //Functions
+        
+        //Init function 
+        //called at window onload
+        function init(){
+            //initialize the globals
+            canvas.document.querySelector('#mainCanvas');
+            ctx.canvas.getContext('2d');
+            
+            
+            
+        }
+        
+        //Event Callback Functions
+        
+        //Mousedown - called on Mouse pressed down
+        function doMousedown(e){
+            console.log(e.type);
+        }
+        
+        //Mousemove - called as mouse moves
+        function doMousemove(e){
+            
+        }
+        
+        //Mouseup - called when mouse click is released
+        function doMouseup(e){
+            console.log(e.type);
+        }
+        
+        //Mouseout - if user drags out of the canvas
+        function doMouseout(e){
+            console.log(e.type);
+        }
+        
+        //Clear - clear entire canvas
+        ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+        drawGrid(ctx, 'lightgray', 10,10);
+        
+        //Utility Functions
+        //do not depend on global variables, no side effects
+        
+        //getMouse
+        //returns mouse position
+        function getMouse(e){
+            var mouse = {};
+            mouse.x = e.pageX - e.target.offsetLeft;
+            mouse.y = e.pageY - e.target.offsetTop;
+            return mouse;
+        }
+        
+        function drawGrid(ctx, color, cellWidth, cellHeight){
+            //save current drawing state
+            ctx.save();
+            
+            //set drawing state variables
+            ctx.strokeStyle = color;
+            ctx.fillStyle = '#ffffff';
+            ctx.lineWidth = 0.5;
+            ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+            
+            //vertical lines
+            for(var x = cellWidth + 0.5; x<ctx.canvas.width; x+= cellWidth){
+                ctx.beginPath();
+                ctx.moveTo(x,0);
+                ctx.lineTo(x,ctx.canvas.height);
+                ctx.stroke();
+            }
+            
+            //horizontal lines
+            for(var y = cellHeight + 0.5; y<ctx.canvas.height; y+= cellHeight){
+                ctx.beginPath();
+                ctx.moveTo(0,y);
+                ctx.lineTo(ctx.canvas.width, y);
+                ctx.stroke();
+            }
+            
+            //restore drawing state
+            ctx.restore();
+        }
+        
+    </script>
+</head>
+<body>
+    <canvas id="mainCanvas" width="700" height="500">
+        Please update your browser!
+    </canvas>
+    
+    <div id="controls">
+        <!-- Tool Chooser -->
+        <label>Tool:
+            <select id="toolChooser">
+                <option value="toolPencil">Pencil</option>
+            </select>
+        </label>
+        <!-- Line Width Chooser -->
+        <label>Line Width:
+            <select id="lineWidthChooser">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </label>
+        <!-- Clear Canvas Button -->
+        <span><input id="clearButton" type="button" value="Clear"/></span>
+    </div>
+</body>
+</html>
