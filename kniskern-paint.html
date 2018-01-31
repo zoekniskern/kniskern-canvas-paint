@@ -40,10 +40,12 @@
         var canvas;
         var ctx;
         var dragging = false;
-        var lineWdith;
+        var lineWidth;
         var strokeStyle;
         
         //Constant Variables
+        var default_lineWidth = 3;
+        var default_strokeStyle = "black";
         
         //Functions
         
@@ -51,38 +53,98 @@
         //called at window onload
         function init(){
             //initialize the globals
-            canvas.document.querySelector('#mainCanvas');
-            ctx.canvas.getContext('2d');
+            canvas = document.querySelector('#mainCanvas');
+            ctx = canvas.getContext('2d');
+            lineWidth = default_lineWidth;
+            strokeStyle = default_strokeStyle;
             
+            //set initial properties of the graphics constant
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
             
+            drawGrid(ctx,'lightgray',10,10);
             
+            //event listeners
+            canvas.onmousedown = doMousedown;
+            canvas.onmousemove = doMousemove;
+            canvas.onmouseup = doMouseup;
+            canvas.onmouseout = doMouseout;
+            
+            //set up line width
+            document.querySelector('#lineWidthChooser').onchange = doLineWidthChange;
+            
+           document.querySelector('#strokeStyleChooser').onchange = doStrokeStyleChange;
         }
         
         //Event Callback Functions
         
         //Mousedown - called on Mouse pressed down
         function doMousedown(e){
-            console.log(e.type);
+            //console.log(e.type);
+            dragging = true;
+            
+            //get location of mouse
+            var mouse = getMouse(e);
+            
+            //Pencil tool
+            ctx.beginPath();
+            
+            //move pen to x,y of mouse
+            ctx.moveTo(mouse.x, mouse.y);
         }
         
         //Mousemove - called as mouse moves
         function doMousemove(e){
+            //cancel if mouse button is not down
+            if(!dragging) return;
             
+            //get location of mouse in canvas coordinates
+            var mouse = getMouse(e);
+            
+            //Pencil tool
+            //set strokeStyle and lineWidth to global values
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = lineWidth;
+            
+            //draw line to x,y of mouse
+            ctx.lineTo(mouse.x, mouse.y);
+            
+            ctx.stroke();
         }
         
         //Mouseup - called when mouse click is released
         function doMouseup(e){
-            console.log(e.type);
+            //console.log(e.type);
+            dragging = false;
+            ctx.closePath();
         }
         
         //Mouseout - if user drags out of the canvas
         function doMouseout(e){
-            console.log(e.type);
+            //console.log(e.type);
+            dragging = false;
+            ctx.closePath();
         }
         
         //Clear - clear entire canvas
-        ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
-        drawGrid(ctx, 'lightgray', 10,10);
+        function doClear(){
+		  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		  drawGrid(ctx,'lightgray', 10, 10);
+        }
+        
+        //Change line width
+        function doLineWidthChange(e){
+            lineWidth = e.target.value;
+            console.dir(lineWidth);
+        }
+        
+        //Change stroke style
+        function doStrokeStyleChange(e){
+            strokeStyle = e.target.value;
+            console.dir(strokeStyle);
+        }
         
         //Utility Functions
         //do not depend on global variables, no side effects
@@ -98,7 +160,7 @@
         
         function drawGrid(ctx, color, cellWidth, cellHeight){
             //save current drawing state
-            ctx.save();
+            ctx.save()
             
             //set drawing state variables
             ctx.strokeStyle = color;
@@ -143,6 +205,18 @@
         <!-- Line Width Chooser -->
         <label>Line Width:
             <select id="lineWidthChooser">
+                <option value="black" selected>Black</option>
+                <option value="red">Red</option>
+                <option value="orange">Orange</option>
+                <option value="yellow">Yellow</option>
+                <option value="green">Green</option>
+                <option value="blue">Blue</option>
+                <option value="violet">Purple</option>
+            </select>
+        </label>
+        <!-- Stroke Style Chooser -->
+        <label>Stroke Style:
+            <select id="strokeStyleChooser">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3" selected>3</option>
