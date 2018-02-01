@@ -6,7 +6,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css?family=Abel');
         body {
-            background: #eeeeee;
+            background: #7a7a7a;
             font-family: 'Abel', sans-serif;
         }
         
@@ -30,6 +30,15 @@
             font-size: 15px;
             margin-right: 0.75em;
         }
+        
+        #topCanvas{
+            background: rgba(0,0,0,0,);
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            z-index: 1;
+            cursor: pointer;
+        }
     </style>
     
     <script>
@@ -42,10 +51,19 @@
         var dragging = false;
         var lineWidth;
         var strokeStyle;
+        var currentTool;
+        var fillStyle;
+        var origin;
+        var topCanvas;
+        var topCtx;
         
         //Constant Variables
         var default_lineWidth = 3;
         var default_strokeStyle = "black";
+        var default_fillStyle = "black";
+        var tool_pencil = "toolPencil";
+        var tool_rectangle = "toolRectangle";
+        var tool_line = "toolLine";
         
         //Functions
         
@@ -57,12 +75,25 @@
             ctx = canvas.getContext('2d');
             lineWidth = default_lineWidth;
             strokeStyle = default_strokeStyle;
+            fillStyle = default_fillStyle;
+            currentTool = tool_pencil;
+            origin = {};
+            topCanvas = document.querySelector('#topCanvas');
+            topCtx = topCanvas.getContext('2d');
             
             //set initial properties of the graphics constant
+            /*
             ctx.lineWidth = lineWidth;
             ctx.strokeStyle = strokeStyle;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
+            */
+            //// Set both properties together
+            topCtx.lineWidth = ctx.lineWidth = lineWidth;
+            topCtx.strokeStyle = ctx.strokeStyle = strokeStyle;
+            topCtx.fillStyle = ctx.fillStyle = strokeStyle;
+            topCtx.lineCap = ctx.lineCap = "round";
+            topCtx.lineJoin = ctx.lineJoin = "round";
             
             drawGrid(ctx,'lightgray',10,10);
             
@@ -71,9 +102,22 @@
             canvas.onmousemove = doMousemove;
             canvas.onmouseup = doMouseup;
             canvas.onmouseout = doMouseout;
+            ////for IE <11
+            topCanvas.onmousedown = doMousedown;
+            topCanvas.onmousemove = doMousemove;
+            topCanvas.onmouseup = doMouseup;
+            topCanvas.onmouseout = doMouseout;
             
            //change things with select onchanges
            document.querySelector('#lineWidthChooser').onchange = doLineWidthChange;           document.querySelector('#strokeStyleChooser').onchange = doStrokeStyleChange;
+           document.querySelector('#toolChooser').onchange = function(e){
+                currentTool = e.target.value;
+                //console.log("currentTool = " + currentTool);
+           }
+           document.querySelector('#fillStyleChooser').onchange = function(e){
+                fillStyle = e.target.value;
+                //console.log("fillStyle = " + fillStyle);
+           }
             
             //clear button
             document.querySelector('#clearButton').onclick = doClear;
@@ -85,54 +129,113 @@
         function doMousedown(e){
             //console.log(e.type);
             dragging = true;
-            
             //get location of mouse
             var mouse = getMouse(e);
+                
+            switch(currentTool) {
+                case tool_pencil:
+                    //Pencil tool
+                    ctx.beginPath();
+                    //move pen to x,y of mouse
+                    ctx.moveTo(mouse.x, mouse.y);
+                    break;
+                case tool_rectangle:
+                case tool_line:
+                    origin.x = mouse.x;
+                    origin.y = mouse.y;
+                    break;
+            }
             
-            //Pencil tool
-            ctx.beginPath();
-            
-            //move pen to x,y of mouse
-            ctx.moveTo(mouse.x, mouse.y);
         }
         
         //Mousemove - called as mouse moves
         function doMousemove(e){
             //cancel if mouse button is not down
             if(!dragging) return;
-            
             //get location of mouse in canvas coordinates
             var mouse = getMouse(e);
             
+            switch(currentTool) {
+                case tool_pencil:
+                    //set strokeStyle and lineWidth
+                    ctx.strokeStyle = strokeStyle;
+                    ctx.lineWidth = lineWidth;
+                    //draw line to x,y of mouse
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                    break;
+                case tool_rectangle:
+                    //user can draw r -> l or l -> r
+                    var x = Math.min(mouse.x, origin.x);
+                    var y = Math.min(mouse.y, origin.y);
+                    var w = Math.abs(mouse.x - origin.x);
+                    var h = Math.abs(mouse.y - origin.y);
+                    
+                    //fill & stroke the rect
+                    topCtx.strokeStyle = strokeStyle;
+                    topCtx.fillStyle = fillStyle;
+                    topCtx.lineWidth = lineWidth;
+                    //erase old canvas
+                    clearTopCanvas()
+                    //draw new rect
+                    topCtx.fillRect(x,y,w,h);
+                    topCtx.strokeRect(x,y,w,h);
+                    break;
+                case tool_line:
+                    break;
+                    
+            }
             //Pencil tool
             //set strokeStyle and lineWidth to global values
             ctx.strokeStyle = strokeStyle;
             ctx.lineWidth = lineWidth;
             
-            //draw line to x,y of mouse
-            ctx.lineTo(mouse.x, mouse.y);
             
-            ctx.stroke();
         }
         
         //Mouseup - called when mouse click is released
         function doMouseup(e){
             //console.log(e.type);
+            switch(currentTool) {
+                case tool_pencil:
+                    ctx.closePath();
+                    break;
+                case tool_rectangle:
+                    //runs same code as tool_line because no break
+                case tool_line:
+                    if(dragging){
+                        ctx.drawImage(topCanvas,0,0);
+                        clearTopCanvas();
+                    }
+                    break;
+            }
             dragging = false;
-            ctx.closePath();
         }
         
         //Mouseout - if user drags out of the canvas
         function doMouseout(e){
             //console.log(e.type);
+            switch(currentTool) {
+                case tool_pencil:
+                    //runs same code as tool_line because no break
+                case tool_rectangle:
+                    //runs same code as tool_line because no break
+                case tool_line:
+                    //cancel drawing
+                    clearTopCanvas();
+                    break;
+            }
             dragging = false;
-            ctx.closePath();
         }
         
         //Clear - clear entire canvas
         function doClear(){
 		  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 		  drawGrid(ctx,'lightgray', 10, 10);
+        }
+        ////Clear for topCanvas
+        function clearTopCanvas(){
+            topCtx.clearRect(0,0,topCtx.canvas.width, topCtx.canvas.height);
         }
         
         //Change line width
@@ -144,6 +247,9 @@
         function doStrokeStyleChange(e){
             strokeStyle = e.target.value;
         }
+        
+        //Change tool
+        
         
         //Utility Functions
         //do not depend on global variables, no side effects
@@ -190,15 +296,21 @@
     </script>
 </head>
 <body>
+    <!-- Canvases -->
     <canvas id="mainCanvas" width="700" height="500">
         Please update your browser!
     </canvas>
-    
+    <canvas id="topCanvas" width="700" height="500">
+        Please update your browser!
+    </canvas>
+    <!-- Control Panel -->
     <div id="controls">
         <!-- Tool Chooser -->
         <label>Tool:
             <select id="toolChooser">
                 <option value="toolPencil">Pencil</option>
+                <option value="toolRectangle">Rectangle</option>
+                <option value="toolLine">Line</option>
             </select>
         </label>
         <!-- Line Width Chooser -->
@@ -226,6 +338,18 @@
                 <option value="8">8</option>
                 <option value="9">9</option>
                 <option value="10">10</option>
+            </select>
+        </label>
+        <!-- Fill Style Chooser -->
+        <label>Fill Style:
+            <select id="fillStyleChooser">
+                <option value="black" selected>Black</option>
+                <option value="red">Red</option>
+                <option value="orange">Orange</option>
+                <option value="yellow">Yellow</option>
+                <option value="green">Green</option>
+                <option value="blue">Blue</option>
+                <option value="violet">Purple</option>
             </select>
         </label>
         <!-- Clear Canvas Button -->
