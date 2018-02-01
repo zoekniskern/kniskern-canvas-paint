@@ -72,10 +72,11 @@
             canvas.onmouseup = doMouseup;
             canvas.onmouseout = doMouseout;
             
-            //set up line width
-            document.querySelector('#lineWidthChooser').onchange = doLineWidthChange;
+           //change things with select onchanges
+           document.querySelector('#lineWidthChooser').onchange = doLineWidthChange;           document.querySelector('#strokeStyleChooser').onchange = doStrokeStyleChange;
             
-           document.querySelector('#strokeStyleChooser').onchange = doStrokeStyleChange;
+            //clear button
+            document.querySelector('#clearButton').onclick = doClear;
         }
         
         //Event Callback Functions
@@ -137,13 +138,11 @@
         //Change line width
         function doLineWidthChange(e){
             lineWidth = e.target.value;
-            console.dir(lineWidth);
         }
         
         //Change stroke style
         function doStrokeStyleChange(e){
             strokeStyle = e.target.value;
-            console.dir(strokeStyle);
         }
         
         //Utility Functions
@@ -204,7 +203,7 @@
         </label>
         <!-- Line Width Chooser -->
         <label>Line Width:
-            <select id="lineWidthChooser">
+            <select id="strokeStyleChooser">
                 <option value="black" selected>Black</option>
                 <option value="red">Red</option>
                 <option value="orange">Orange</option>
@@ -216,7 +215,7 @@
         </label>
         <!-- Stroke Style Chooser -->
         <label>Stroke Style:
-            <select id="strokeStyleChooser">
+            <select id="lineWidthChooser">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3" selected>3</option>
