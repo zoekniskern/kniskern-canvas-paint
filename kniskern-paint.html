@@ -182,6 +182,15 @@
                     topCtx.strokeRect(x,y,w,h);
                     break;
                 case tool_line:
+                    //fill & stroke the rect
+                    topCtx.strokeStyle = strokeStyle;
+                    topCtx.lineWidth = lineWidth;
+                    //erase old canvas
+                    clearTopCanvas()
+                    topCtx.beginPath();
+                    topCtx.moveTo(origin.x, origin.y);
+                    topCtx.lineTo(mouse.x, mouse.y);
+                    topCtx.stroke();
                     break;
                     
             }
@@ -203,7 +212,7 @@
                 case tool_rectangle:
                     //runs same code as tool_line because no break
                 case tool_line:
-                    if(dragging){
+                    if(dragging) {
                         ctx.drawImage(topCanvas,0,0);
                         clearTopCanvas();
                     }
@@ -314,7 +323,7 @@
             </select>
         </label>
         <!-- Line Width Chooser -->
-        <label>Line Width:
+        <label>Stroke Style:
             <select id="strokeStyleChooser">
                 <option value="black" selected>Black</option>
                 <option value="red">Red</option>
@@ -326,7 +335,7 @@
             </select>
         </label>
         <!-- Stroke Style Chooser -->
-        <label>Stroke Style:
+        <label>Line Width:
             <select id="lineWidthChooser">
                 <option value="1">1</option>
                 <option value="2">2</option>
